@@ -1,28 +1,29 @@
 package com.thebestadso.innovation.controller;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.thebestadso.innovation.dto.HttpGlobalResponseDTO;
 import com.thebestadso.innovation.dto.LoginResponseDTO;
+import com.thebestadso.innovation.dto.RegisterRequestDTO;
+import com.thebestadso.innovation.dto.UserDTO;
 import com.thebestadso.innovation.service.AuthService;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequiredArgsConstructor 
+@RequiredArgsConstructor
 @RequestMapping("/auth/")
 public class AuthController {
 
     private final AuthService authService;
 
-    @PostMapping
+    @PostMapping("refresh")
     public ResponseEntity<HttpGlobalResponseDTO<LoginResponseDTO>> refreshToken(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
         HttpGlobalResponseDTO<LoginResponseDTO> response = new HttpGlobalResponseDTO<>();
@@ -45,6 +46,18 @@ public class AuthController {
             response.setMessage("Token is invalid or expired");
             response.setData(null);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        }
+
+    }
+
+    @PostMapping("register")
+    public ResponseEntity<HttpGlobalResponseDTO<UserDTO>> register(@RequestBody RegisterRequestDTO request) {
+        try {
+            HttpGlobalResponseDTO<UserDTO> response = authService.register(request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }
 }

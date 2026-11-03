@@ -10,7 +10,7 @@ import lombok.Data;
 
 @Entity
 @Data
-@Table(name = "roles")
+@Table(name = "users")
 public class Users {
     @Id // Primary key
     @GeneratedValue(strategy = GenerationType.IDENTITY) // Auto increment
