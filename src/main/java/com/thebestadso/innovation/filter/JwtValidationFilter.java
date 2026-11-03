@@ -8,7 +8,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import com.thebestadso.innovation.service.JwtService;
 
 import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -65,6 +64,9 @@ public class JwtValidationFilter extends OncePerRequestFilter {
         }
     }
 
+    /**
+     * Rutas públicas que no requieren jwt
+     */
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
