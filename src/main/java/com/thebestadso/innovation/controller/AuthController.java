@@ -2,18 +2,23 @@ package com.thebestadso.innovation.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.thebestadso.innovation.dto.HttpGlobalResponseDTO;
+import com.thebestadso.innovation.dto.LoginRequestDTO;
 import com.thebestadso.innovation.dto.LoginResponseDTO;
 import com.thebestadso.innovation.dto.RegisterRequestDTO;
 import com.thebestadso.innovation.dto.UserDTO;
 import com.thebestadso.innovation.service.AuthService;
+import com.thebestadso.innovation.exception.InvalidCredentialsException;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -22,6 +27,38 @@ import lombok.RequiredArgsConstructor;
 public class AuthController {
 
     private final AuthService authService;
+
+    /**
+     * Recibe las credenciales en POST /api/v1/auth/login y devuelve el JWT.
+     * La anotación Valid comprueba los campos antes de llamar al servicio.
+     */
+    @PostMapping("login")
+    public ResponseEntity<HttpGlobalResponseDTO<LoginResponseDTO>> login(
+            @Valid @RequestBody LoginRequestDTO request) {
+        return ResponseEntity.ok(authService.login(request));
+    }
+
+    /**
+     * Responde con 401 cuando las credenciales son incorrectas,
+     * conservando el formato de respuesta usado en la aplicación.
+     */
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<HttpGlobalResponseDTO<Void>> handleInvalidCredentials(InvalidCredentialsException exception) {
+        HttpGlobalResponseDTO<Void> response = new HttpGlobalResponseDTO<>();
+        response.setMessage(exception.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
+    /**
+     * Responde con 400 cuando falta el usuario o la contraseña,
+     * o alguno de los campos está vacío o contiene solo espacios.
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<HttpGlobalResponseDTO<Void>> handleInvalidLoginRequest() {
+        HttpGlobalResponseDTO<Void> response = new HttpGlobalResponseDTO<>();
+        response.setMessage("El usuario y la contraseña son obligatorios");
+        return ResponseEntity.badRequest().body(response);
+    }
 
     @PostMapping("refresh")
     public ResponseEntity<HttpGlobalResponseDTO<LoginResponseDTO>> refreshToken(HttpServletRequest request) {
